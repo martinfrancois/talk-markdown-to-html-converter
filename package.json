@@ -20,8 +20,7 @@
   },
   "homepage": "https://github.com/martinfrancois/jug-st-gallen-2026#readme",
   "dependencies": {
-    "@wooorm/starry-night": "^3.8.0",
-    "cmark-gfm-js": "^1.1.7",
-    "hast-util-to-html": "^9.0.5"
+    "cmark-gfm-js": "1.1.7",
+    "shiki": "3.21.0"
   }
 }
