@@ -1,0 +1,7 @@
+.idea
+*.iml
+*.md
+*.html
+!template.html
+pnpm-lock.yaml
+node_modules

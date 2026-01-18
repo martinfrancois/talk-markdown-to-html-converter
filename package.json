@@ -1,0 +1,27 @@
+{
+  "name": "talk-markdown-to-html-converter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "render": "node scripts/render-code.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/martinfrancois/talk-markdown-to-html-converter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/martinfrancois/talk-markdown-to-html-converter/issues"
+  },
+  "homepage": "https://github.com/martinfrancois/jug-st-gallen-2026#readme",
+  "dependencies": {
+    "@wooorm/starry-night": "^3.8.0",
+    "cmark-gfm-js": "^1.1.7",
+    "hast-util-to-html": "^9.0.5"
+  }
+}
