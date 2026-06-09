@@ -1,6 +1,7 @@
 .idea
 *.iml
 *.md
+!README.md
 *.html
 !template.html
 pnpm-lock.yaml
