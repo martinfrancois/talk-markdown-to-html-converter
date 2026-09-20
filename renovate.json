@@ -2,9 +2,9 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    "helpers:pinGitHubActionDigests"
+    "helpers:pinGitHubActionDigests",
+    ":rebaseStalePrs"
   ],
-  "description": "No CI runs on this repository's pull requests, so no rule here merges automatically: with ignoreTests false Renovate would wait for checks that never report. Add the non-major automerge rule once a workflow checks pull requests.",
   "labels": [
     "dependencies"
   ],
@@ -23,13 +23,8 @@
   "prConcurrentLimit": 0,
   "branchConcurrentLimit": 0,
   "separateMajorMinor": true,
-  "separateMultipleMajor": false,
+  "separateMultipleMajor": true,
   "separateMinorPatch": false,
-  "rebaseWhen": "conflicted",
-  "schedule": [
-    "* * * * 5"
-  ],
-  "updateNotScheduled": false,
   "vulnerabilityAlerts": {
     "enabled": true,
     "labels": [
@@ -43,7 +38,18 @@
   },
   "packageRules": [
     {
-      "description": "Keep the supported Node.js range in engines. The repository-wide pin strategy would turn >=18 into one exact version.",
+      "description": "Public repository: merge eligible non-major updates after checks pass. Group only dependencies that need coordinated updates; keep unrelated updates separate.",
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "pinDigest",
+        "digest"
+      ],
+      "automerge": true
+    },
+    {
+      "description": "Keep the supported Node.js range in engines. The repository-wide pin strategy would turn >=22 into one exact version.",
       "matchManagers": [
         "npm"
       ],
@@ -61,38 +67,6 @@
       "addLabels": [
         "major update"
       ]
-    },
-    {
-      "description": "Private repository: combine eligible automatic updates after package-specific rules to conserve Actions minutes. Keep existing review requirements unchanged.",
-      "matchUpdateTypes": [
-        "minor",
-        "patch",
-        "pin",
-        "pinDigest",
-        "digest"
-      ],
-      "matchJsonata": [
-        "automerge = true"
-      ],
-      "groupName": "Routine dependency updates",
-      "groupSlug": "routine-dependencies"
-    },
-    {
-      "description": "Private repository: bundle review-required updates without enabling automerge. Keep majors separate from reviewed non-major updates so incompatible major upgrades do not block other reviewed fixes.",
-      "matchUpdateTypes": [
-        "major",
-        "minor",
-        "patch",
-        "pin",
-        "pinDigest",
-        "digest"
-      ],
-      "matchJsonata": [
-        "$not(automerge = true)"
-      ],
-      "groupName": "Reviewed dependency updates",
-      "groupSlug": "reviewed-dependencies",
-      "automerge": false
     }
   ]
 }
