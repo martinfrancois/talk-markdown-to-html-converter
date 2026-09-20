@@ -68,7 +68,7 @@ The converter does not sanitize HTML. `cmark-gfm-js` passes raw HTML in the Mark
 
 ## What the page loads from the network
 
-Styles and the QR script are inline. The one exception is the QR image itself: the page sets the image source to `https://api.qrserver.com/v1/create-qr-code/` with the QR URL as a query parameter, on every page load and every resize. That request sends the encoded URL to that service. Without a network connection the page renders fully, with an empty QR box. The test suite checks that no other external URL appears in the output.
+Styles and the QR script are inline. The one exception is the QR image itself: the page sets the image source to `https://api.qrserver.com/v1/create-qr-code/` with the QR URL as a query parameter, on every page load and every resize. That request sends the encoded URL to that service. Everything else is inline, so the notes themselves need no network. The test suite checks that no other external URL appears in the output.
 
 ## Limitations
 
