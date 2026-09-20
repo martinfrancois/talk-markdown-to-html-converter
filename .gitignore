@@ -1,8 +1,15 @@
+# Editor files
 .idea
 *.iml
+.vscode
+
+# Dependencies
+node_modules
+pnpm-lock.yaml
+
+# Input and output of the converter. README and the example input stay tracked.
 *.md
 !README.md
+!examples/*.md
 *.html
 !template.html
-pnpm-lock.yaml
-node_modules
