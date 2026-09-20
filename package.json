@@ -1,27 +1,32 @@
 {
   "name": "talk-markdown-to-html-converter",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Convert Markdown talk notes into one self-contained HTML page with syntax highlighting and a hover QR code",
+  "private": true,
   "scripts": {
     "render": "node scripts/render-code.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/martinfrancois/talk-markdown-to-html-converter.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "markdown",
+    "html",
+    "shiki",
+    "talk"
+  ],
+  "author": "François Martin",
+  "license": "MIT",
   "type": "commonjs",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "bugs": {
     "url": "https://github.com/martinfrancois/talk-markdown-to-html-converter/issues"
   },
-  "homepage": "https://github.com/martinfrancois/jug-st-gallen-2026#readme",
+  "homepage": "https://github.com/martinfrancois/talk-markdown-to-html-converter#readme",
   "dependencies": {
     "cmark-gfm-js": "1.1.7",
     "shiki": "3.21.0"
