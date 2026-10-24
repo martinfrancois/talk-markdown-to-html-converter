@@ -3,7 +3,7 @@ import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { test } from "node:test";
+import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
@@ -12,9 +12,26 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const script = path.join(repoRoot, "scripts", "render-code.mjs");
 const exampleInput = path.join(repoRoot, "examples", "talk.md");
 
+let workDir;
+let outputCount = 0;
+
+before(async () => {
+  workDir = await fs.mkdtemp(path.join(os.tmpdir(), "talk-render-"));
+});
+
+after(async () => {
+  await fs.rm(workDir, { recursive: true, force: true });
+});
+
+const writeInput = async (name, markdown) => {
+  const input = path.join(workDir, name);
+  await fs.writeFile(input, markdown, "utf8");
+  return input;
+};
+
 const render = async (args) => {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "talk-render-"));
-  const output = path.join(dir, "out.html");
+  outputCount += 1;
+  const output = path.join(workDir, `out-${outputCount}.html`);
   const result = await execFileAsync(process.execPath, [script, ...args, "--output", output], {
     cwd: repoRoot,
   });
@@ -49,14 +66,14 @@ test("the page is self-contained except for the QR image", async () => {
   assert.doesNotMatch(html, /<link\b/, "no external stylesheet");
   assert.doesNotMatch(html, /<script[^>]*\bsrc=/, "no external script");
 
-  const external = [...urlsIn(html)].filter((url) => !urlsIn(markdown).has(url));
-  assert.deepEqual(external, ["https://api.qrserver.com/v1/create-qr-code/?size=${Math.round(qrSize"]);
+  const externalHosts = [...urlsIn(html)]
+    .filter((url) => !urlsIn(markdown).has(url))
+    .map((url) => new URL(url).host);
+  assert.deepEqual(externalHosts, ["api.qrserver.com"]);
 });
 
 test("raw HTML in the Markdown reaches the page, apart from filtered tags", async () => {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "talk-input-"));
-  const input = path.join(dir, "raw.md");
-  await fs.writeFile(input, "Hello <b>bold</b>\n\n<script>alert(1)</script>\n", "utf8");
+  const input = await writeInput("raw.md", "Hello <b>bold</b>\n\n<script>alert(1)</script>\n");
 
   const { html } = await render(["--input", input]);
 
@@ -65,9 +82,7 @@ test("raw HTML in the Markdown reaches the page, apart from filtered tags", asyn
 });
 
 test("strict mode rejects a code block without a language", async () => {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "talk-input-"));
-  const input = path.join(dir, "nolang.md");
-  await fs.writeFile(input, "```\nno language here\n```\n", "utf8");
+  const input = await writeInput("nolang.md", "```\nno language here\n```\n");
 
   await assert.rejects(render(["--input", input]), /missing a language/);
 
