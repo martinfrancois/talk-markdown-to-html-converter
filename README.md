@@ -1,43 +1,95 @@
-# Talk Markdown to HTML converter
+# Talk Markdown to HTML Converter
 
-Turns a Markdown file into one self-contained HTML page with GitHub-style layout, syntax-highlighted code blocks and a hover QR code, for talk notes and code walkthroughs shown on a projector.
-
-## What it does
-
-`scripts/render-code.mjs` reads a GitHub-flavored Markdown file, converts it with `cmark-gfm-js`, highlights every fenced code block with Shiki, and injects the result into `template.html`. The stylesheet in `styles/markdown.css` is inlined into the output, so the page is a single file you can copy anywhere.
-
-The page uses a 175% zoom so code stays readable from the back of a room, stays in light mode whatever the system theme says, and has a QR code that appears when the cursor enters the top-right 20 by 20 pixel corner. Click the QR code to change the URL it encodes. Drag its bottom-left corner to resize it. URL and size are saved in the browser's local storage. By default the QR code points at the page's own URL.
+Create a self-contained single HTML page from a Markdown file, with GitHub-style formatting and syntax-highlighted code blocks. The output uses a large default font for readable talks and screen sharing, stays in light mode regardless of the system color setting, and includes a QR code that appears when you move the cursor to the top-right corner. The default workflow is intended for preparing readable talk notes, code walkthroughs, or presentation companion pages.
 
 ## Requirements
 
-- Node.js 22 or newer. `.nvmrc` selects Node 24. The tests pass on 22.22 and 24.20.
-- npm
+- Node.js 22 or newer
+- npm or pnpm
 
-## Install
+## First-Time Setup
+
+Clone the repository:
 
 ```sh
 git clone https://github.com/martinfrancois/talk-markdown-to-html-converter.git
 cd talk-markdown-to-html-converter
-npm ci
 ```
 
-## Usage
+Install dependencies with your preferred package manager:
 
-Put your notes in `code.md` at the repository root and run
+| Package manager | Command |
+| --- | --- |
+| npm | `npm install` |
+| pnpm | `pnpm install` |
 
-```sh
-npm run render
+## Create the HTML Page
+
+Add/edit `code.md`, then run:
+
+| Package manager | Command |
+| --- | --- |
+| npm | `npm run render` |
+| pnpm | `pnpm run render` |
+
+This creates or updates:
+
+```text
+code.html
 ```
 
-This writes `code.html` next to it. Open the file in a browser.
+Open `code.html` in your browser.
 
-Other input and output paths work too. Paths are resolved relative to the repository root, not the current directory.
+## Markdown Input
+
+By default, the converter reads:
+
+```text
+code.md
+```
+
+Use normal GitHub-flavored Markdown for headings, lists, paragraphs, and fenced code blocks.
+
+Code blocks should include a language name:
+
+````md
+```java
+public class Demo {
+    public static void main(String[] args) {
+        System.out.println("Hello");
+    }
+}
+```
+````
+
+The default mode is strict. If a code block is missing a language, rendering fails so you can fix the Markdown instead of silently getting unhighlighted code.
+
+Only render Markdown you trust. The converter does not sanitize HTML: raw HTML in the Markdown, including event handler attributes such as `onerror` and `javascript:` links, reaches the page unchanged. The only tags it escapes are the ones GitHub's tagfilter extension covers: `script`, `style`, `iframe`, `title`, `textarea`, `xmp`, `noembed`, `noframes` and `plaintext`.
+
+## QR Code
+
+The generated page includes a QR code in the top-right corner.
+
+- Move the cursor inside the top-right `20px` by `20px` corner area to show it.
+- Click the QR code to change the URL.
+- Drag the invisible bottom-left corner of the QR code to resize it. The resize area is indicated by the cursor changing.
+- The chosen URL and size are saved in your browser's local storage.
+
+By default, the QR code points to the current page URL.
+
+The QR image is the one thing the page loads from the network. It comes from `https://api.qrserver.com/v1/create-qr-code/`, which receives the encoded URL as a query parameter each time the page loads and each time you resize the QR code. Styles, scripts and the notes themselves are inlined into the page.
+
+## Command Options
+
+You can render different files without changing the defaults:
 
 ```sh
 node scripts/render-code.mjs --input notes.md --output notes.html
 ```
 
-All options:
+Relative paths are resolved from the repository root, not from the current directory.
+
+Available options:
 
 ```text
 --input code.md
@@ -45,42 +97,41 @@ All options:
 --output code.html
 --markdown-css styles/markdown.css
 --theme github-light-high-contrast
---strict          fail when a code block has no language or produced no highlighting (default)
---lenient         render such blocks as plain text instead
---no-strict       same as --lenient
+--strict
+--lenient
+--no-strict
 ```
 
-Every fenced code block needs a language name, for example ` ```java `. In strict mode a block without one stops the render with an error that names the block, so you fix the Markdown instead of getting unhighlighted code on stage.
+Use lenient mode if you want rendering to continue even when syntax highlighting cannot be applied:
+
+```sh
+node scripts/render-code.mjs --lenient
+```
 
 ## Example
 
-`examples/talk.md` is a short set of notes for a talk on retry budgets, with two Java blocks and one shell block.
+`examples/talk.md` is a short set of notes for a talk on retry budgets. Render it with:
 
 ```sh
 node scripts/render-code.mjs --input examples/talk.md --output examples/talk.html
 ```
 
-Open `examples/talk.html` in a browser. `npm test` renders the same file and checks the headings, the three highlighted blocks and the inlined styles.
+Then open `examples/talk.html` in your browser. `npm test` renders the same file and checks the output.
 
-## Input must be trusted
+## Output Features
 
-The converter does not sanitize HTML. `cmark-gfm-js` passes raw HTML in the Markdown through to the page. Only the tags GitHub's tagfilter extension covers are escaped: `script`, `style`, `iframe`, `title`, `textarea`, `xmp`, `noembed`, `noframes` and `plaintext`. Other tags, event handler attributes such as `onerror`, and `javascript:` links reach the output unchanged. Render only Markdown you wrote yourself. The test suite checks this behavior so a change in it shows up.
+- GitHub-style Markdown layout
+- GitHub light high-contrast theme
+- Large default font size for readable talks and screen sharing
+- Light mode output regardless of the system color setting
+- Syntax highlighting powered by Shiki
+- Extra spacing below the content for comfortable scrolling
+- Built-in hover QR code with editable URL and resizable display
 
-## What the page loads from the network
-
-Styles and the QR script are inline. The one exception is the QR image itself: the page sets the image source to `https://api.qrserver.com/v1/create-qr-code/` with the QR URL as a query parameter, on every page load and every resize. That request sends the encoded URL to that service. Everything else is inline, so the notes themselves need no network. The test suite checks that no other external URL appears in the output.
-
-## Limitations
-
-- Only one Markdown file per page. There is no include mechanism.
-- The 175% zoom and the light theme are fixed in `scripts/render-code.mjs` and `template.html`. Change them there.
-- `--input`, `--output`, `--template` and `--markdown-css` are resolved from the repository root, so absolute paths are the safe choice when running from elsewhere.
-- The QR code needs network access, see above.
-
-## Third-party material
+## Third-Party Material
 
 `styles/markdown.css` reproduces the Markdown rendering styles that github.com serves, which come from GitHub's Primer design system (MIT license). Shiki and cmark-gfm-js are MIT licensed npm dependencies.
 
 ## License
 
-MIT, see `LICENSE`.
+MIT, see [`LICENSE`](LICENSE).
