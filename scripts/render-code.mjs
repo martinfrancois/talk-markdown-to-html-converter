@@ -13,7 +13,7 @@ const gfm = require("cmark-gfm-js");
 const DEFAULT_INPUT = "code.md";
 const DEFAULT_TEMPLATE = "template.html";
 const DEFAULT_OUTPUT = "code.html";
-const DEFAULT_MARKDOWN_CSS = path.join("styles", "markdown.css");
+const DEFAULT_MARKDOWN_CSS = path.join("styles", "github-markdown.css");
 const DEFAULT_THEME = "github-light-high-contrast";
 
 const args = process.argv.slice(2);
@@ -55,7 +55,7 @@ for (let i = 0; i < args.length; i += 1) {
         "  [--input code.md]",
         "  [--template template.html]",
         "  [--output code.html]",
-        "  [--markdown-css styles/markdown.css]",
+        "  [--markdown-css styles/github-markdown.css]",
         `  [--theme ${DEFAULT_THEME}]`,
         "  [--strict] (default)",
         "  [--lenient | --no-strict] (allow fallback without highlighting)",

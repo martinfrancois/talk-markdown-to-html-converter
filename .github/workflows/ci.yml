@@ -10,7 +10,10 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   test:
-    name: test
+    name: test (Node ${{ matrix.node }})
+    strategy:
+      matrix:
+        node: [22, 24]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -19,9 +22,19 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: .nvmrc
+          node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
       - run: npm test
       - name: Render the example talk
         run: node scripts/render-code.mjs --input examples/talk.md --output examples/talk.html
+  required-test:
+    name: test
+    needs: test
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - env:
+          TEST_RESULT: ${{ needs.test.result }}
+        run: test "$TEST_RESULT" = success

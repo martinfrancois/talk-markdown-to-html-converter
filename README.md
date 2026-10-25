@@ -95,7 +95,7 @@ Available options:
 --input code.md
 --template template.html
 --output code.html
---markdown-css styles/markdown.css
+--markdown-css styles/github-markdown.css
 --theme github-light-high-contrast
 --strict
 --lenient
@@ -130,8 +130,10 @@ Then open `examples/talk.html` in your browser. `npm test` renders the same file
 
 ## Third-Party Material
 
-`styles/markdown.css` reproduces the Markdown rendering styles that github.com serves, which come from GitHub's Primer design system (MIT license). Shiki and cmark-gfm-js are MIT licensed npm dependencies.
+`styles/github-markdown.css` is the unmodified light stylesheet from [github-markdown-css 5.9.0](https://github.com/sindresorhus/github-markdown-css), under the MIT license in `styles/github-markdown.LICENSE`. Shiki and cmark-gfm-js are MIT licensed npm dependencies.
 
 ## License
 
 MIT, see [`LICENSE`](LICENSE).
+
+The seven-day package cooldown in `.npmrc` requires npm 11.10 or newer. Node 22 ships an older npm, so update npm before installing dependencies.

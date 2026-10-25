@@ -67,6 +67,8 @@ test("the page is self-contained except for the QR image", async () => {
   assert.doesNotMatch(html, /<script[^>]*\bsrc=/, "no external script");
 
   const externalHosts = [...urlsIn(html)]
+    // The SVG namespace identifies inline icons; it does not fetch a resource.
+    .filter((url) => url !== "http://www.w3.org/2000/svg")
     .filter((url) => !urlsIn(markdown).has(url))
     .map((url) => new URL(url).host);
   assert.deepEqual(externalHosts, ["api.qrserver.com"]);
