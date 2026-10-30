@@ -130,7 +130,7 @@ Then open `examples/talk.html` in your browser. `npm test` renders the same file
 
 ## Third-Party Material
 
-`styles/github-markdown.css` is the unmodified light stylesheet from [github-markdown-css 5.9.0](https://github.com/sindresorhus/github-markdown-css), under the MIT license in `styles/github-markdown.LICENSE`. Shiki and cmark-gfm-js are MIT licensed npm dependencies.
+`styles/github-markdown.css` is the unmodified light stylesheet from [github-markdown-css 5.9.0](https://github.com/sindresorhus/github-markdown-css), under the MIT license in `styles/github-markdown.LICENSE`. The exported HTML includes that notice alongside the stylesheet. Shiki and cmark-gfm-js are MIT licensed npm dependencies.
 
 ## License
 

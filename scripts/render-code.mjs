@@ -139,7 +139,13 @@ const overrideCss = `
 
 const markdown = await fs.readFile(inputPath, "utf8");
 const template = await fs.readFile(templatePath, "utf8");
-const markdownCss = await fs.readFile(markdownCssPath, "utf8");
+let markdownCss = await fs.readFile(markdownCssPath, "utf8");
+if (markdownCssPath === path.resolve(__dirname, "..", DEFAULT_MARKDOWN_CSS)) {
+  // The exported page carries a copy of the bundled stylesheet and its notice.
+  const licensePath = path.join(path.dirname(markdownCssPath), "github-markdown.LICENSE");
+  const license = await fs.readFile(licensePath, "utf8");
+  markdownCss = `/*\n${license}*/\n${markdownCss}`;
+}
 
 const markdownHtml = gfm.convert(markdown);
 
