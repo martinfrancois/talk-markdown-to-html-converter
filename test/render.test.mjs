@@ -76,22 +76,24 @@ test("custom stylesheets do not acquire the bundled stylesheet's notice", async 
   assert.doesNotMatch(html, /Copyright \(c\) Sindre Sorhus/);
 });
 
-test("the page is self-contained except for the QR image", async () => {
+test("the page and QR resources are self-contained", async () => {
   const { html } = await render(["--input", exampleInput]);
   const markdown = await fs.readFile(exampleInput, "utf8");
 
   assert.doesNotMatch(html, /<link\b/, "no external stylesheet");
   assert.doesNotMatch(html, /<script[^>]*\bsrc=/, "no external script");
 
-  // License URLs in CSS comments identify authors; they do not load resources.
+  // License and source URLs in comments identify authors; they do not load resources.
   const resourceHtml = html.replace(/(<style\b[^>]*>)([\s\S]*?)(<\/style>)/g,
-    (_, open, css, close) => open + css.replace(/\/\*[\s\S]*?\*\//g, "") + close);
+    (_, open, css, close) => open + css.replace(/\/\*[\s\S]*?\*\//g, "") + close)
+    .replace(/(<script\b[^>]*>)([\s\S]*?)(<\/script>)/g,
+      (_, open, script, close) => open + script.replace(/\/\*[\s\S]*?\*\/|^\s*\/\/.*$/gm, "") + close);
   const externalHosts = [...urlsIn(resourceHtml)]
     // The SVG namespace identifies inline icons; it does not fetch a resource.
     .filter((url) => url !== "http://www.w3.org/2000/svg")
     .filter((url) => !urlsIn(markdown).has(url))
     .map((url) => new URL(url).host);
-  assert.deepEqual(externalHosts, ["api.qrserver.com"]);
+  assert.deepEqual(externalHosts, []);
 });
 
 test("raw HTML in the Markdown reaches the page, apart from filtered tags", async () => {
@@ -110,4 +112,11 @@ test("strict mode rejects a code block without a language", async () => {
 
   const { html } = await render(["--input", input, "--lenient"]);
   assert.match(html, /<span>no language here<\/span>/, "lenient mode renders the block as plain text");
+});
+
+test("exports the QR generator with its complete license notice", async () => {
+  const { html } = await render(["--input", exampleInput]);
+  const license = await fs.readFile(path.join(repoRoot, "licenses", "qrcode-generator.LICENSE"), "utf8");
+  assert.ok(html.includes(`<script id="qr-generator">/*\n${license}*/`));
+  assert.doesNotMatch(html, /<!-- qr-generator -->/);
 });

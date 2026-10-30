@@ -77,7 +77,7 @@ The generated page includes a QR code in the top-right corner.
 
 By default, the QR code points to the current page URL.
 
-The QR image is the one thing the page loads from the network. It comes from `https://api.qrserver.com/v1/create-qr-code/`, which receives the encoded URL as a query parameter each time the page loads and each time you resize the QR code. Styles, scripts and the notes themselves are inlined into the page.
+The page generates the QR image locally, including after URL edits and resizing. The URL is not sent to a QR service. The generator, its license notice, styles, scripts and notes are embedded in the exported HTML, so the built-in page works offline. Unicode URLs are supported. If a URL exceeds QR capacity, the page shows a message instead of an outdated image; edit it to a shorter URL. External images or other resources in your own Markdown still need their original source.
 
 ## Command Options
 
@@ -130,7 +130,7 @@ Then open `examples/talk.html` in your browser. `npm test` renders the same file
 
 ## Third-Party Material
 
-`styles/github-markdown.css` is the unmodified light stylesheet from [github-markdown-css 5.9.0](https://github.com/sindresorhus/github-markdown-css), under the MIT license in `styles/github-markdown.LICENSE`. The exported HTML includes that notice alongside the stylesheet. Shiki and cmark-gfm-js are MIT licensed npm dependencies.
+`styles/github-markdown.css` is the unmodified light stylesheet from [github-markdown-css 5.9.0](https://github.com/sindresorhus/github-markdown-css), under the MIT license in `styles/github-markdown.LICENSE`. The exported HTML includes that notice alongside the stylesheet. The page also embeds [qrcode-generator 2.0.4](https://github.com/kazuhikoarase/qrcode-generator), under the MIT license in `licenses/qrcode-generator.LICENSE`. That notice comes from the release source at [83b7e8f](https://github.com/kazuhikoarase/qrcode-generator/blob/83b7e8fe3fddd3b0368dbafd6ce56995bd25e3c8/LICENSE) and is included in every exported page that uses the QR controls. Shiki and cmark-gfm-js are MIT licensed npm dependencies.
 
 ## License
 
