@@ -5,6 +5,7 @@
     <meta name=viewport content="width=device-width">
     <title>Code</title>
 
+    <!-- qr-generator -->
     <style id="layout-styles">
         .code-body {
             border-bottom-left-radius: 6px;
@@ -54,6 +55,16 @@
             image-rendering: pixelated;
         }
 
+        #qr-error {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .qr-floating [hidden] {
+            display: none;
+        }
+
         .qr-resize-handle {
             position: absolute;
             left: -10px;
@@ -69,6 +80,7 @@
 <div class="qr-hover-zone" id="qr-hover-zone" aria-label="QR code controls">
     <div class="qr-floating" id="qr-floating" role="button" tabindex="0" title="Click to change QR code URL">
         <img id="qr-image" alt="QR code">
+        <p id="qr-error" role="status" hidden></p>
         <div class="qr-resize-handle" id="qr-resize-handle" aria-hidden="true"></div>
     </div>
 </div>
@@ -88,17 +100,35 @@
         const qr = document.getElementById("qr-floating");
         const image = document.getElementById("qr-image");
         const handle = document.getElementById("qr-resize-handle");
+        const error = document.getElementById("qr-error");
+        qrcode.stringToBytes = qrcode.stringToBytesFuncs["UTF-8"];
 
         let qrUrl = localStorage.getItem(`${storagePrefix}url`) || DEFAULT_QR_URL;
         let qrSize = Number(localStorage.getItem(`${storagePrefix}size`)) || DEFAULT_QR_SIZE;
         let isResizing = false;
+        let renderedUrl;
 
         const clampSize = (size) => Math.min(MAX_QR_SIZE, Math.max(MIN_QR_SIZE, size));
 
         const renderQr = () => {
             qrSize = clampSize(qrSize);
             qr.style.setProperty("--qr-size", `${qrSize}px`);
-            image.src = `https://api.qrserver.com/v1/create-qr-code/?size=${Math.round(qrSize * 2)}x${Math.round(qrSize * 2)}&data=${encodeURIComponent(qrUrl)}`;
+            if (renderedUrl === qrUrl) return;
+            renderedUrl = qrUrl;
+            try {
+                const code = qrcode(0, "M");
+                code.addData(qrUrl, "Byte");
+                code.make();
+                image.src = code.createDataURL(4);
+                image.hidden = false;
+                error.hidden = true;
+                error.textContent = "";
+            } catch (_) {
+                image.removeAttribute("src");
+                image.hidden = true;
+                error.textContent = "cannot encode QR URL: use a shorter URL";
+                error.hidden = false;
+            }
         };
 
         const editQrUrl = () => {

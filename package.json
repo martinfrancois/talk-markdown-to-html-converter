@@ -29,6 +29,11 @@
   "homepage": "https://github.com/martinfrancois/talk-markdown-to-html-converter#readme",
   "dependencies": {
     "cmark-gfm-js": "1.1.7",
+    "qrcode-generator": "2.0.4",
     "shiki": "3.21.0"
+  },
+  "devDependencies": {
+    "jsqr": "1.4.0",
+    "omggif": "1.0.10"
   }
 }

@@ -138,7 +138,14 @@ const overrideCss = `
 `;
 
 const markdown = await fs.readFile(inputPath, "utf8");
-const template = await fs.readFile(templatePath, "utf8");
+let template = await fs.readFile(templatePath, "utf8");
+if (template.includes("<!-- qr-generator -->")) {
+  const qrSource = await fs.readFile(require.resolve("qrcode-generator"), "utf8");
+  const qrLicense = await fs.readFile(path.resolve(__dirname, "..", "licenses", "qrcode-generator.LICENSE"), "utf8");
+  // The exported page redistributes the generator and must retain its notice.
+  const inlineQr = `/*\n${qrLicense}*/\n${qrSource}`.replace(/<\/script/gi, "<\\/script");
+  template = template.replace("<!-- qr-generator -->", () => `<script id="qr-generator">${inlineQr}</script>`);
+}
 let markdownCss = await fs.readFile(markdownCssPath, "utf8");
 if (markdownCssPath === path.resolve(__dirname, "..", DEFAULT_MARKDOWN_CSS)) {
   // The exported page carries a copy of the bundled stylesheet and its notice.
