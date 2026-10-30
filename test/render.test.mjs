@@ -59,6 +59,23 @@ test("renders the example talk with GitHub-style headings and highlighted code",
   assert.doesNotMatch(html, /Deque<Instant>/, "angle brackets inside code are HTML-escaped");
 });
 
+test("exports the bundled stylesheet with its complete license notice", async () => {
+  const { html } = await render(["--input", exampleInput]);
+  const license = await fs.readFile(path.join(repoRoot, "styles", "github-markdown.LICENSE"), "utf8");
+  const css = await fs.readFile(path.join(repoRoot, "styles", "github-markdown.css"), "utf8");
+
+  assert.ok(html.includes(`/*\n${license}*/\n${css}`));
+});
+
+test("custom stylesheets do not acquire the bundled stylesheet's notice", async () => {
+  const css = ".markdown-body { color: rebeccapurple; }";
+  const cssPath = await writeInput("custom.css", css);
+  const { html } = await render(["--input", exampleInput, "--markdown-css", cssPath]);
+
+  assert.ok(html.includes(`<style id="markdown-styles">${css}</style>`));
+  assert.doesNotMatch(html, /Copyright \(c\) Sindre Sorhus/);
+});
+
 test("the page is self-contained except for the QR image", async () => {
   const { html } = await render(["--input", exampleInput]);
   const markdown = await fs.readFile(exampleInput, "utf8");
@@ -66,7 +83,10 @@ test("the page is self-contained except for the QR image", async () => {
   assert.doesNotMatch(html, /<link\b/, "no external stylesheet");
   assert.doesNotMatch(html, /<script[^>]*\bsrc=/, "no external script");
 
-  const externalHosts = [...urlsIn(html)]
+  // License URLs in CSS comments identify authors; they do not load resources.
+  const resourceHtml = html.replace(/(<style\b[^>]*>)([\s\S]*?)(<\/style>)/g,
+    (_, open, css, close) => open + css.replace(/\/\*[\s\S]*?\*\//g, "") + close);
+  const externalHosts = [...urlsIn(resourceHtml)]
     // The SVG namespace identifies inline icons; it does not fetch a resource.
     .filter((url) => url !== "http://www.w3.org/2000/svg")
     .filter((url) => !urlsIn(markdown).has(url))
