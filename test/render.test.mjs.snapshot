@@ -1,0 +1,60 @@
+exports[`the rendered example matches the reviewed snapshot 1`] = `
+<article class="markdown-body entry-content container-lg" itemprop=text>
+<div class="markdown-heading" dir="auto"><h1 tabindex="-1" dir="auto" class="heading-element">Retry budgets in a payment service</h1></div>
+<p>Notes for a 20 minute talk. The code below is what goes on screen.</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" dir="auto" class="heading-element">The problem</h2></div>
+<p>A client that retries on every failure turns one slow dependency into a
+retry storm. Three things to show:</p>
+<ol>
+<li>The naive loop</li>
+<li>A budget that caps retries per window</li>
+<li>What the metrics look like after the change</li>
+</ol>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" dir="auto" class="heading-element">The naive loop</h2></div>
+<div class="highlight notranslate position-relative overflow-auto" dir="auto"><pre><span class="line"><span style="color:#A0111F">public</span><span style="color:#A0111F"> class</span><span style="color:#702C00"> NaiveClient</span><span style="color:#0E1116"> {</span></span>
+<span class="line"><span style="color:#A0111F">    public</span><span style="color:#0E1116"> Receipt </span><span style="color:#622CBC">charge</span><span style="color:#0E1116">(Payment </span><span style="color:#702C00">payment</span><span style="color:#0E1116">) {</span></span>
+<span class="line"><span style="color:#A0111F">        while</span><span style="color:#0E1116"> (</span><span style="color:#023B95">true</span><span style="color:#0E1116">) {</span></span>
+<span class="line"><span style="color:#A0111F">            try</span><span style="color:#0E1116"> {</span></span>
+<span class="line"><span style="color:#A0111F">                return</span><span style="color:#0E1116"> gateway.</span><span style="color:#622CBC">charge</span><span style="color:#0E1116">(payment);</span></span>
+<span class="line"><span style="color:#0E1116">            } </span><span style="color:#A0111F">catch</span><span style="color:#0E1116"> (GatewayException </span><span style="color:#702C00">e</span><span style="color:#0E1116">) {</span></span>
+<span class="line"><span style="color:#66707B">                // try again, forever</span></span>
+<span class="line"><span style="color:#0E1116">            }</span></span>
+<span class="line"><span style="color:#0E1116">        }</span></span>
+<span class="line"><span style="color:#0E1116">    }</span></span>
+<span class="line"><span style="color:#0E1116">}</span></span>
+<span class="line"></span></pre><div class="zeroclipboard-container">&nbsp;</div></div>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" dir="auto" class="heading-element">A retry budget</h2></div>
+<div class="highlight notranslate position-relative overflow-auto" dir="auto"><pre><span class="line"><span style="color:#A0111F">public</span><span style="color:#A0111F"> final</span><span style="color:#A0111F"> class</span><span style="color:#702C00"> RetryBudget</span><span style="color:#0E1116"> {</span></span>
+<span class="line"><span style="color:#A0111F">    private</span><span style="color:#A0111F"> final</span><span style="color:#A0111F"> int</span><span style="color:#0E1116"> maxRetriesPerWindow;</span></span>
+<span class="line"><span style="color:#A0111F">    private</span><span style="color:#A0111F"> final</span><span style="color:#0E1116"> Deque</span><span style="color:#702C00">&#x3C;</span><span style="color:#A0111F">Instant</span><span style="color:#702C00">> </span><span style="color:#0E1116">retries</span><span style="color:#A0111F"> =</span><span style="color:#A0111F"> new</span><span style="color:#0E1116"> ArrayDeque&#x3C;>();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#A0111F">    public</span><span style="color:#622CBC"> RetryBudget</span><span style="color:#0E1116">(</span><span style="color:#A0111F">int</span><span style="color:#702C00"> maxRetriesPerWindow</span><span style="color:#0E1116">) {</span></span>
+<span class="line"><span style="color:#023B95">        this</span><span style="color:#0E1116">.maxRetriesPerWindow </span><span style="color:#A0111F">=</span><span style="color:#0E1116"> maxRetriesPerWindow;</span></span>
+<span class="line"><span style="color:#0E1116">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#A0111F">    public</span><span style="color:#A0111F"> boolean</span><span style="color:#622CBC"> tryAcquire</span><span style="color:#0E1116">(Instant </span><span style="color:#702C00">now</span><span style="color:#0E1116">) {</span></span>
+<span class="line"><span style="color:#A0111F">        while</span><span style="color:#0E1116"> (</span><span style="color:#A0111F">!</span><span style="color:#0E1116">retries.</span><span style="color:#622CBC">isEmpty</span><span style="color:#0E1116">() </span><span style="color:#A0111F">&#x26;&#x26;</span><span style="color:#0E1116"> retries.</span><span style="color:#622CBC">peekFirst</span><span style="color:#0E1116">().</span><span style="color:#622CBC">isBefore</span><span style="color:#0E1116">(now.</span><span style="color:#622CBC">minusSeconds</span><span style="color:#0E1116">(</span><span style="color:#023B95">60</span><span style="color:#0E1116">))) {</span></span>
+<span class="line"><span style="color:#0E1116">            retries.</span><span style="color:#622CBC">pollFirst</span><span style="color:#0E1116">();</span></span>
+<span class="line"><span style="color:#0E1116">        }</span></span>
+<span class="line"><span style="color:#A0111F">        if</span><span style="color:#0E1116"> (retries.</span><span style="color:#622CBC">size</span><span style="color:#0E1116">() </span><span style="color:#A0111F">>=</span><span style="color:#0E1116"> maxRetriesPerWindow) {</span></span>
+<span class="line"><span style="color:#A0111F">            return</span><span style="color:#023B95"> false</span><span style="color:#0E1116">;</span></span>
+<span class="line"><span style="color:#0E1116">        }</span></span>
+<span class="line"><span style="color:#0E1116">        retries.</span><span style="color:#622CBC">addLast</span><span style="color:#0E1116">(now);</span></span>
+<span class="line"><span style="color:#A0111F">        return</span><span style="color:#023B95"> true</span><span style="color:#0E1116">;</span></span>
+<span class="line"><span style="color:#0E1116">    }</span></span>
+<span class="line"><span style="color:#0E1116">}</span></span>
+<span class="line"></span></pre><div class="zeroclipboard-container">&nbsp;</div></div>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" dir="auto" class="heading-element">Wiring it in</h2></div>
+<ul>
+<li>Budget of 10 retries per minute per dependency</li>
+<li>Reject with <code>503 Retry-After</code> when the budget is empty</li>
+<li>Alert when the budget is empty for more than five minutes</li>
+</ul>
+<div class="highlight notranslate position-relative overflow-auto" dir="auto"><pre><span class="line"><span style="color:#702C00">curl</span><span style="color:#023B95"> -s</span><span style="color:#023B95"> -o</span><span style="color:#032563"> /dev/null</span><span style="color:#023B95"> -w</span><span style="color:#032563"> "%{http_code}\\n"</span><span style="color:#032563"> http://localhost:8080/charge</span><span style="color:#023B95"> -d</span><span style="color:#032563"> '{"amount": 1200}'</span></span>
+<span class="line"></span></pre><div class="zeroclipboard-container">&nbsp;</div></div>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" dir="auto" class="heading-element">Takeaways</h2></div>
+<p>Retries are load. Budget them like any other resource, and put the
+number on a dashboard so <code>p99 &lt; 200ms</code> stays visible during the outage.</p>
+
+</article>
+`;

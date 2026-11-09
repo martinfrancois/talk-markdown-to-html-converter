@@ -54,9 +54,20 @@ test("renders the example talk with GitHub-style headings and highlighted code",
   );
   assert.match(html, /<span style="color:#[0-9A-Fa-f]{6}">/, "Shiki emits inline color spans");
   assert.doesNotMatch(html, /<pre><code class="language-/, "no code block is left unhighlighted");
+  assert.doesNotMatch(html, /<pre class="shiki/, "Shiki's own <pre> wrapper is stripped");
   assert.match(html, /<style id="markdown-styles">/);
   assert.match(html, /<style id="render-overrides">/);
   assert.doesNotMatch(html, /Deque<Instant>/, "angle brackets inside code are HTML-escaped");
+});
+
+// A Shiki or cmark-gfm update that changes the rendered content shows up as a diff of the
+// snapshot file. After checking that diff, accept it with `node --test --test-update-snapshots`.
+test("the rendered example matches the reviewed snapshot", async (t) => {
+  const { html } = await render(["--input", exampleInput]);
+  const article = html.match(/<article\b[\s\S]*?<\/article>/)?.[0];
+
+  assert.ok(article, "the page has an <article> with the rendered Markdown");
+  t.assert.snapshot(article, { serializers: [(value) => value] });
 });
 
 test("exports the bundled stylesheet with its complete license notice", async () => {
