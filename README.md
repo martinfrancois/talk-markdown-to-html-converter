@@ -116,7 +116,7 @@ node scripts/render-code.mjs --lenient
 node scripts/render-code.mjs --input examples/talk.md --output examples/talk.html
 ```
 
-Then open `examples/talk.html` in your browser. `npm test` renders the same file and checks the output.
+Then open `examples/talk.html` in your browser. `npm test` renders the same file and checks the output. It compares the rendered content with `test/render.test.mjs.snapshot`, so an update to Shiki or cmark-gfm that changes the page fails the test. Review the change, then accept it with `node --test --test-update-snapshots`. The snapshot test needs Node.js 22.13 or newer, the first Node 22 release with stable `node:test` snapshots.
 
 ## Output Features
 
